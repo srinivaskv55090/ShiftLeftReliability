@@ -40,7 +40,7 @@ slo_impact: explanation tying the issue to SLOs
 
 optional test function: extra check (like “only flag DELETE if there’s no WHERE”)
 
-This is a regex-based linting approach: it finds text patterns and raises issues.
+This is a regex-based linting approach: it finds text patterns and raises issues
 
 
 

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Auto SLO Generator Demo</title>
+<style>
+body { font-family: sans-serif; margin: 40px; background: #f0f2f5; }
+textarea { width: 100%; height: 200px; font-family: monospace; font-size: 14px; padding: 10px; }
+button { padding: 10px 20px; margin-top: 10px; font-size: 16px; }
+#sloOutput { margin-top: 20px; padding: 20px; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.slo-card { border-left: 4px solid #2196f3; padding: 10px; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Auto SLO Generator Demo</h1>
+<p>Paste your code below (Python/JS/SQL style) and click Generate SLOs:</p>
+<textarea id="codeInput" placeholder="Example:&#10;def process_order():&#10;    # simulate processing&#10;    time.sleep(0.1)&#10;&#10;SELECT * FROM users;"></textarea>
+<br>
+<button onclick="generateSLOs()">Generate SLOs</button>
+
+<div id="sloOutput">
+  <strong>SLOs will appear here...</strong>
+</div>
+
+<script>
+function generateSLOs(){
+    const code = document.getElementById('codeInput').value;
+    const sloOutput = document.getElementById('sloOutput');
+    sloOutput.innerHTML = ''; // clear previous
+
+    // Split code into lines
+    const lines = code.split('\n');
+
+    lines.forEach((line, index) => {
+        line = line.trim();
+        if(!line) return;
+
+        let slo = null;
+
+        // Simple pattern-based auto SLO generation
+        if(line.includes('sleep') || line.includes('time.sleep') || line.includes('setTimeout')){
+            slo = {metric:'latency', threshold:'<200ms for 95% requests', objective:'99.9%'};
+        } else if(line.match(/SELECT\s+\*/i)){
+            slo = {metric:'latency', threshold:'<300ms for DB queries', objective:'99.9%'};
+        } else if(line.match(/DELETE|DROP|UPDATE/i)){
+            slo = {metric:'errors', threshold:'<1% failures', objective:'99.99%'};
+        } else if(line.includes('process_order') || line.includes('placeOrder')){
+            slo = {metric:'errors', threshold:'<5% failures', objective:'99.9%'};
+        }
+
+        if(slo){
+            const div = document.createElement('div');
+            div.className = 'slo-card';
+            div.innerHTML = `
+                <strong>Line ${index+1}:</strong> ${line}<br>
+                <strong>Auto-generated SLO:</strong> ${slo.metric} | Threshold: ${slo.threshold} | Objective: ${slo.objective}
+            `;
+            sloOutput.appendChild(div);
+        }
+    });
+
+    if(!sloOutput.hasChildNodes()){
+        sloOutput.innerHTML = '<em>No critical operations detected to generate SLOs.</em>';
+    }
+}
+</script>
+
+</body>
+</html>
